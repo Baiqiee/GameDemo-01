@@ -630,13 +630,13 @@ func _draw_walls(ci: CanvasItem) -> void:
 	ci.draw_rect(Rect2(0, ARENA.y - WALL - 2.0, ARENA.x, 2.0), c, true)
 	ci.draw_rect(Rect2(WALL, 0, 2.0, ARENA.y), c, true)
 	ci.draw_rect(Rect2(ARENA.x - WALL - 2.0, 0, 2.0, ARENA.y), c, true)
-	# 墙体上的数据刻度
+	# 墙体上的数据刻度（压得很淡，只当纹理看，不要读成调试数字）
 	var mono := Assets.mono_font()
 	var y := WALL + 40.0
 	while y < ARENA.y - WALL:
 		ci.draw_string(mono, Vector2(6.0, y), "%04d" % int(y), HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
-			Pal.a(Pal.main, 0.30))
-		Tx.right(ci, mono, ARENA.x - 6.0, y, "%04d" % int(y), 10, Pal.a(Pal.main, 0.11))
+			Pal.a(Pal.main, 0.13))
+		Tx.right(ci, mono, ARENA.x - 6.0, y, "%04d" % int(y), 10, Pal.a(Pal.main, 0.05))
 		y += 120.0
 
 

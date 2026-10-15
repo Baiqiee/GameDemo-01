@@ -574,26 +574,26 @@ func _draw_world(ci: CanvasItem) -> void:
 	ci.draw_set_transform(Vector2(0.0, GROUND_Y * (1.0 - sy)), 0.0, Vector2(1.0, sy))
 
 	# 数据空间底纹：青色网格。靠近地面最清晰，往上淡出 ——
-	# 让场景一眼读起来是「代码构成的空间」，而不是夜空。
+	# 让场景一眼读起来是「代码构成的空间」，而不是一片黑。
 	var cy := GROUND_Y
 	while cy > -240.0:
 		var f := clampf(1.0 - (GROUND_Y - cy) / (GROUND_Y + 240.0), 0.0, 1.0)
-		ci.draw_rect(Rect2(-400.0, cy, 2600.0, 1.0), Pal.a(Pal.grid, 0.03 + 0.15 * f), true)
+		ci.draw_rect(Rect2(-400.0, cy, 2600.0, 1.0), Pal.a(Pal.grid, 0.05 + 0.24 * f), true)
 		cy -= 52.0
 	var cx := -384.0
 	while cx < 2112.0:
 		var vy := GROUND_Y
 		while vy > -240.0:
 			var f2 := clampf(1.0 - (GROUND_Y - vy) / (GROUND_Y + 240.0), 0.0, 1.0)
-			ci.draw_rect(Rect2(cx, vy, 1.0, 52.0), Pal.a(Pal.grid, 0.03 + 0.13 * f2), true)
+			ci.draw_rect(Rect2(cx, vy, 1.0, 52.0), Pal.a(Pal.grid, 0.05 + 0.20 * f2), true)
 			vy -= 52.0
 		cx += 64.0
 
 	# 地形不再是草地：改成「悬浮的数据平台」，越往下越化进雾里。
 	# 这是空灵感的关键 —— 物体没有明确的底边，而是消失在雾中。
-	var grey := Color(0.22, 0.32, 0.42)
-	var grass := Assets.tile("grassMid")
-	var dirt := Assets.tile("dirtMid")
+	# 表面纹理全部程序化绘制，不再引用草地贴图 ——
+	# Kenney 的 grass 是绿色，即使乘以青色调，绿通道仍压过蓝通道，
+	# 远看会在顶面留一条发绿的边，和整体色相反着来。
 	var top_h := 70.0
 
 	for i in PLATFORMS.size():
@@ -616,15 +616,16 @@ func _draw_world(ci: CanvasItem) -> void:
 			col.a = a
 			ci.draw_rect(Rect2(px, y, pw, hh), col, true)
 
-		# 贴图只留一层极淡的纹理，不参与配色
-		if grass != null:
-			var gm := grey
-			gm.a = 0.22
-			ci.draw_texture_rect(grass, Rect2(px, GROUND_Y, pw, top_h), true, gm)
-		if dirt != null:
-			var dm := grey
-			dm.a = 0.13
-			ci.draw_texture_rect(dirt, Rect2(px, GROUND_Y + top_h, pw, 130.0), true, dm)
+		# 表面纹理：等距扫描线 + 断续短刻痕，色相完全跟着平台走
+		var ty := GROUND_Y + 4.0
+		while ty < GROUND_Y + top_h:
+			var tf := 1.0 - (ty - GROUND_Y) / top_h
+			ci.draw_rect(Rect2(px, ty, pw, 1.0), Pal.a(Pal.grid, 0.10 + 0.26 * tf), true)
+			ty += 8.0
+		var dx := px + 12.0
+		while dx < px + pw - 20.0:
+			ci.draw_rect(Rect2(dx, GROUND_Y + 22.0, 16.0, 2.0), Pal.a(Pal.accent, 0.18), true)
+			dx += 52.0
 
 		# 顶面：一条细亮线，外加一层薄薄的辉光
 		ci.draw_rect(Rect2(px, GROUND_Y - 1.0, pw, 1.0), Pal.a(Pal.lighten(Pal.main, 0.4), 0.80), true)
@@ -658,7 +659,7 @@ func _draw_hud(ci: CanvasItem) -> void:
 	var w := VIEW.x
 	var h := VIEW.y
 	# 背景用极疏极慢的代码雨，只作为空气里的颗粒感，不抢主体
-	_rain.draw(ci, Pal.main, 0.10)
+	_rain.draw(ci, Pal.main, 0.15)
 
 	# 不再有阶段名、进度条、按键提示条 —— 弱引导要的是「什么都不说」
 	_whisper.draw(ci)
