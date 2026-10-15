@@ -1,10 +1,12 @@
-# Demo
+# REBOOT
 
+![在线试玩](https://img.shields.io/badge/在线试玩-浏览器直接开-2EA7C9?logo=googlechrome&logoColor=white)
 ![Godot](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)
 ![GDScript](https://img.shields.io/badge/GDScript-100%25-2F7D8C)
-![Size](https://img.shields.io/badge/仓库-约_3_MB-1F6F7A)
 
-一个关于**解体与重组**的 2D 短流程游戏 Demo。主角是一个人工智能实体，
+**▶ [点这里直接在浏览器里玩](https://reboot-game.app.workbuddy.host)**（约 53 MB，首次加载需要等进度条走完；需要键盘和鼠标）
+
+一个关于**解体与重组**的 2D 短流程游戏。主角是一个人工智能实体，
 它在一次解体之后醒来，只剩下左右两个方向可用；每摔死一次，就从自己的残骸里
 捞回一点新的动作。
 
@@ -73,6 +75,9 @@
   相机只有 `x / z / yaw` 三个自由度。
 - **配色集中管理**：`pal.gd` 一张表定义四个阶段的色温，阶段切换时整体平滑过渡。
   全部色相收在「青蓝 → 深蓝」区间内，不含暖色。
+- **Web 端字体自包含**：中文与等宽字体按游戏实际用到的字符集生成子集
+  （Noto Sans SC Light 301 KB + Cascadia Mono 20 KB）随包携带，
+  桌面 / Web 两端渲染一致，不依赖系统装了什么字体。
 - **素材层不崩**：`assets.gd` 访问任何素材失败都返回 `null`，绘制端遇到 `null`
   自动降级成程序化绘制，不会因为缺一张图而白屏。
 
@@ -80,6 +85,7 @@
 
 ```
 main.tscn              唯一入口
+export_presets.cfg     Web 导出预设（nothreads 模板，静态托管可直接部署）
 scripts/
   main.gd              阶段状态机
   pal.gd               全局色温：蓝青色代码空间，四阶段平滑过渡
@@ -95,11 +101,9 @@ docs/                  README 用的动图与截图
 
 ## 运行
 
-需要 Godot 4.7。
+**浏览器**：直接打开 <https://reboot-game.app.workbuddy.host>。
 
-编辑器里：用 Godot 打开本目录，按 <kbd>F5</kbd>。
-
-命令行：
+**本地**：需要 Godot 4.7。用 Godot 打开本目录按 <kbd>F5</kbd>，或：
 
 ```bash
 godot --path .
@@ -107,16 +111,24 @@ godot --path .
 
 窗口 960×540，GL Compatibility 渲染，无插件依赖，克隆下来直接能跑。
 
-## 素材
+**导出 Web 版**：仓库里带好了 `export_presets.cfg`（Web / nothreads），
+导出后得到 `index.html / .js / .wasm / .pck` 四个文件，任何静态服务器都能部署，
+不需要配置 COOP/COEP 响应头：
 
-全部为 CC0，可商用、无需署名：
+```bash
+godot --headless --path . --export-release "Web" ./build/index.html
+```
 
-- **角色** — [MV Platformer Female (32x64)](https://opengameart.org/)（OpenGameArt）。
+## 素材与授权
+
+- **角色** — [MV Platformer Female (32x64)](https://opengameart.org/)（OpenGameArt，CC0）。
   32×64 图集，身体 / 服装 / 发型分层，可在引擎里自由叠色。
-- **瓦片、UI、音效** — [Kenney](https://kenney.nl/)：platformer-art-deluxe、
+- **瓦片、UI、音效** — [Kenney](https://kenney.nl/)（CC0）：platformer-art-deluxe、
   particle-pack、ui-pack、interface-sounds、impact-sounds、digital-audio、sci-fi-sounds
 - **背景音乐** — OpenGameArt（CC0）
-- **字体** — Kenney Future（CC0）。该字体无中文字形，代码里挂了系统 CJK 字体做回退
+- **字体** — Kenney Future（CC0）；随包中文字体子集取自
+  [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC)（SIL OFL 1.1），
+  等宽子集取自 Cascadia Mono（MIT）
 
 `assets/` 下保留了少量当前没有调用点的素材：`sprites/player/`、`sprites/bg/`、`ui/`
 以及大部分粒子贴图。访问函数还在，但没有任何地方调用它们，想精简可以直接删。

@@ -164,14 +164,15 @@ func _draw_hud(ci: CanvasItem) -> void:
 	var h := VIEW.y
 	var soft := Assets.soft_font()
 
-	# 标题。Kenney Future 的小写会渲染成小型大写（Demo 会变成 DeMo），
-	# 观感不对，所以标题改用系统细体并拉大字距 —— 更静、更疏。
+	# 标题。Kenney Future 的小写会渲染成小型大写，观感不对，
+	# 所以标题改用系统细体并拉大字距 —— 更静、更疏。
+	# 字号按字形数量下调：6 个字母用 76 才和原来 4 个字母的视觉宽度相当。
 	var appear := clampf((_t - 0.5) / 2.6, 0.0, 1.0)
 	appear = appear * appear * (3.0 - 2.0 * appear)
 	var breath := 0.94 + 0.06 * sin(_t * 0.55)
 	var tc := Pal.main
 	tc.a = appear * breath
-	_draw_spaced(ci, soft, w * 0.5, h * 0.42, "Demo", 86, 16.0, tc)
+	_draw_spaced(ci, soft, w * 0.5, h * 0.42, "REBOOT", 76, 17.0, tc)
 
 	# 按钮：只有一条发丝般的边框，没有任何填充色块
 	var btn_appear := clampf((_t - 1.8) / 1.8, 0.0, 1.0)

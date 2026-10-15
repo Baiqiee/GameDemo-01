@@ -12,6 +12,15 @@ const DIR_PLAYER := "res://assets/sprites/player/"
 const DIR_PARTICLE := "res://assets/sprites/particles/"
 const DIR_UI := "res://assets/ui/"
 const DIR_FONT := "res://assets/fonts/"
+
+## 随包字体子集。
+## Web 平台拿不到任何系统字体 —— SystemFont 按名字逐个查会全部落空，
+## 中文会整句渲染成方块。所以中文字形必须随包提供。
+## 两个文件都是按本项目实际用到的字符子集化过的，合计约 320 KB：
+##   CJK  —— Noto Sans SC Light（SIL OFL 1.1），934 字形
+##   MONO —— Cascadia Mono Regular（MIT），116 字形，只有拉丁与符号
+const FONT_CJK := DIR_FONT + "NotoSansSC-Light-subset.ttf"
+const FONT_MONO := DIR_FONT + "CascadiaMono-subset.ttf"
 const DIR_BGM := "res://assets/audio/bgm/"
 const DIR_SFX := "res://assets/audio/sfx/"
 
@@ -64,6 +73,7 @@ static var _font_title: Font = null
 static var _font_mono: Font = null
 static var _font_soft: Font = null
 static var _font_title_narrow: Font = null
+static var _font_fallback: Font = null
 static var missing: Array[String] = []
 
 
@@ -149,27 +159,41 @@ static func title_narrow_font() -> Font:
 	return _font_title_narrow
 
 
+## 等宽：键位行用它，「终端输出」的机械感与代码空间的设定一致。
+## 拉丁取自随包的 Cascadia Mono，中文由 CJK 子集兜底。
 static func mono_font() -> Font:
 	if _font_mono == null:
-		var sf := SystemFont.new()
-		sf.font_names = PackedStringArray([
-			"JetBrains Mono", "Cascadia Mono", "Consolas", "Courier New", "monospace"
-		])
-		_font_mono = sf
+		var m := _font_file(FONT_MONO)
+		if m != null:
+			m.fallbacks = [_fallback_font()]
+			_font_mono = m
+		else:
+			# 随包字体缺失时才退回系统等宽
+			var sf := SystemFont.new()
+			sf.font_names = PackedStringArray([
+				"JetBrains Mono", "Cascadia Mono", "Consolas", "Courier New", "monospace"
+			])
+			sf.fallbacks = [_fallback_font()]
+			_font_mono = sf
 	return _font_mono
 
 
-## 衬线/细体：用于空灵氛围下的提示文字。
+## 细体：用于空灵氛围下的提示文字。
 ## 等宽字体自带「终端 / 代码」的机械感，和迷茫的氛围相反，所以另开一套。
 static func soft_font() -> Font:
 	if _font_soft == null:
-		var sf := SystemFont.new()
-		sf.font_names = PackedStringArray([
-			"Microsoft YaHei UI Light", "Microsoft YaHei Light", "Microsoft YaHei UI",
-			"Microsoft YaHei", "Noto Sans CJK SC Light", "Noto Sans CJK SC",
-			"Segoe UI Light", "Segoe UI", "sans-serif",
-		])
-		_font_soft = sf
+		var f := _font_file(FONT_CJK)
+		if f != null:
+			# 它自己就含全部中文与标点，不需要再挂回退（也不该挂，会自引用）
+			_font_soft = f
+		else:
+			var sf := SystemFont.new()
+			sf.font_names = PackedStringArray([
+				"Microsoft YaHei UI Light", "Microsoft YaHei Light", "Microsoft YaHei UI",
+				"Microsoft YaHei", "Noto Sans CJK SC Light", "Noto Sans CJK SC",
+				"Segoe UI Light", "Segoe UI", "sans-serif",
+			])
+			_font_soft = sf
 	return _font_soft
 
 
@@ -190,21 +214,40 @@ static func hero_frame(col: int, row: int) -> Rect2:
 
 
 
-static func _load_font(path: String) -> Font:
-	if ResourceLoader.exists(path):
-		var r: Resource = load(path)
-		if r is FontFile:
-			# Kenney Future 只有拉丁字形，中文会渲染成空白方块。
-			# 挂一个系统中文字体做 fallback，标题字体才敢用来排中文。
-			var fb := SystemFont.new()
-			fb.font_names = PackedStringArray([
+## 只取字体文件本身，不挂回退链 —— 回退由调用方决定，避免把字体挂成自己的回退。
+static func _font_file(path: String) -> FontFile:
+	if not ResourceLoader.exists(path):
+		return null
+	var r: Resource = load(path)
+	if r is FontFile:
+		return r
+	return null
+
+
+## 中文兜底：优先随包 CJK 子集，只有它缺失时才退回系统字体。
+## 之所以不直接依赖 SystemFont —— Web 平台没有任何系统字体可用。
+static func _fallback_font() -> Font:
+	if _font_fallback == null:
+		var f := _font_file(FONT_CJK)
+		if f != null:
+			_font_fallback = f
+		else:
+			var sf := SystemFont.new()
+			sf.font_names = PackedStringArray([
 				"Microsoft YaHei UI", "Microsoft YaHei", "SimHei", "Noto Sans CJK SC",
 				"Source Han Sans SC", "PingFang SC", "sans-serif",
 			])
-			(r as FontFile).fallbacks = [fb]
-			return r
-		if r is Font:
-			return r
+			_font_fallback = sf
+	return _font_fallback
+
+
+static func _load_font(path: String) -> Font:
+	var f := _font_file(path)
+	if f != null:
+		# Kenney Future 只有拉丁字形，中文会渲染成空白方块。
+		# 挂一个中文字体做 fallback，标题字体才敢用来排中文。
+		f.fallbacks = [_fallback_font()]
+		return f
 	return ThemeDB.fallback_font
 
 

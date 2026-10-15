@@ -4,7 +4,7 @@ extends Node2D
 ##
 ## 需求映射：
 ##   · 碰到代码门后白光转场
-##   · 出现代码粒子风格的字幕「感谢游玩 demo」
+##   · 出现代码粒子风格的字幕「感谢游玩」+ 副标题 REBOOT
 ##   · 字幕停留不消失，右下角提供重开按钮
 ##
 ## 字幕做法说明：这里没有去采样字形像素，而是用「逐字编译成型」——
@@ -16,7 +16,7 @@ signal restart_requested
 
 const VIEW := Vector2(960.0, 540.0)
 const CREDIT := "感谢游玩"
-const SUBTITLE := "D e m o"
+const SUBTITLE := "R E B O O T"
 
 const CHAR_SIZE := 62
 const COMPILE_LEAD := 0.75     ## 每个字在成型前由乱码占据的时长

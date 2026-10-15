@@ -1,6 +1,6 @@
 extends Node2D
 
-## REBOOT — 赛博代码 Demo 主控
+## REBOOT — 赛博代码空间短流程游戏主控
 ## 职责：输入兜底注册、阶段状态机、阶段间的顺序切换。
 ## 每个阶段是一个自包含的脚本类（Node2D），完成时发出 finished 信号。
 
@@ -19,6 +19,10 @@ var _phase: Node = null
 
 
 func _ready() -> void:
+	# 2D MSAA 在 Web 的 GLES3 后端上不支持，开着只会在浏览器控制台刷警告，
+	# 所以项目设置里默认关掉，桌面端在这里重新打开。
+	if not OS.has_feature("web"):
+		get_viewport().msaa_2d = Viewport.MSAA_2X
 	_ensure_input_actions()
 	var sfx := Sfx.new()
 	sfx.name = "Sfx"
@@ -48,7 +52,7 @@ func phase_count() -> int:
 
 func _ensure_input_actions() -> void:
 	## project.godot 里已写入 Input Map；这里做兜底注册，
-	## 避免映射缺失导致整个 Demo 完全无法操作。
+	## 避免映射缺失导致整个游戏完全无法操作。
 	var key_map := {
 		"move_left": [KEY_A, KEY_LEFT],
 		"move_right": [KEY_D, KEY_RIGHT],

@@ -1,7 +1,7 @@
 class_name CodeParticles
 extends RefCounted
 
-## 「代码粒子」系统 —— 本 Demo 的视觉核心。
+## 「代码粒子」系统 —— 本作的视觉核心。
 ##
 ## 刻意不用 GPUParticles2D：这里需要的是「按字形解散 / 汇聚重组」
 ## 这种把粒子当作对象来编程的模型，而不是引擎的发射器模型。
